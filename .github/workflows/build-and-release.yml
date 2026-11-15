@@ -131,12 +131,12 @@ jobs:
               with open(patches_file, "r", encoding="utf-8") as pf:
                   patches_txt = pf.read()
 
-          # Standardize APK file naming to Miku-v<version>-<arch>.apk
+          # Standardize APK & APKM file naming to Miku-v<version>-<arch>.(apk|apkm)
           os.makedirs("release_assets", exist_ok=True)
-          apk_files = []
+          asset_files = []
           for root, _, files in os.walk(dist_dir):
               for file in sorted(files):
-                  if file.endswith(".apk") and not file.startswith("base"):
+                  if (file.endswith(".apk") or file.endswith(".apkm")) and not file.startswith("base"):
                       src = os.path.join(root, file)
                       # Rename MovieBox -> Miku if needed
                       clean_name = file.replace("MovieBox", "Miku")
@@ -144,7 +144,7 @@ jobs:
                           clean_name = f"Miku-{clean_name}"
                       dst = os.path.join("release_assets", clean_name)
                       shutil.copy2(src, dst)
-                      apk_files.append(dst)
+                      asset_files.append(dst)
 
           # Copy PATCHES.txt and info.json to release_assets
           if os.path.exists(patches_file):
@@ -154,7 +154,7 @@ jobs:
 
           # Calculate SHA-256 Checksums
           checksum_lines = []
-          for af in sorted(apk_files):
+          for af in sorted(asset_files):
               fname = os.path.basename(af)
               sha = hashlib.sha256(open(af, "rb").read()).hexdigest()
               checksum_lines.append(f"- `{fname}`: `{sha}`")
@@ -163,23 +163,27 @@ jobs:
 
           release_body = f"""## 🎬 Miku v{version} (Automated Release)
 
-          Clean, lightweight & ad-free streaming player built with **MikuPatches**.
+Clean, lightweight & ad-free streaming player built with **MikuPatches**.
 
-          ### 📦 Download Assets
-          Download the APK matching your device CPU architecture:
-          - **ARM64-v8a** (Most modern phones): `Miku-v{version}-arm64-v8a.apk`
-          - **ARMEABI-v7a** (Older 32-bit devices): `Miku-v{version}-armeabi-v7a.apk`
+### 📦 Download Assets
+#### ⚡ Compressed APKM Bundles (~62 MB)
+- **ARM64-v8a** (Most modern phones): `Miku-v{version}-arm64-v8a.apkm`
+- **ARMEABI-v7a** (Older 32-bit devices): `Miku-v{version}-armeabi-v7a.apkm`
 
-          ### 🛡️ Checksums (SHA-256)
-          {checksums_block}
+#### 📲 Direct Standalone APKs
+- **ARM64-v8a** (~84 MB): `Miku-v{version}-arm64-v8a.apk`
+- **ARMEABI-v7a** (~80 MB): `Miku-v{version}-armeabi-v7a.apk`
 
-          ---
+### 🛡️ Checksums (SHA-256)
+{checksums_block}
 
-          ### 📝 Applied Patches & Features
-          ```text
-          {patches_txt}
-          ```
-          """
+---
+
+### 📝 Applied Patches & Features
+```text
+{patches_txt}
+```
+"""
 
           with open("RELEASE_BODY.md", "w", encoding="utf-8") as f:
               f.write(release_body)
@@ -200,6 +204,7 @@ jobs:
           draft: false
           prerelease: false
           files: |
+            release_assets/*.apkm
             release_assets/*.apk
             release_assets/PATCHES.txt
             release_assets/info.json
