@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   build:
-    name: Build Patched Miku APK
+    name: Build Patched Miku APKM
     runs-on: ubuntu-latest
 
     steps:
@@ -86,9 +86,9 @@ jobs:
           '
           ls -la input/
 
-      - name: Run MikuPatches Build Engine
+      - name: Run MikuPatches Build Engine (APKM Only)
         run: |
-          python3 build.py -a com.community.newroom -y
+          python3 build.py -a com.community.newroom -y -O apkm
           ls -la dist/
 
       - name: Prepare Release Assets & Notes
@@ -131,12 +131,12 @@ jobs:
               with open(patches_file, "r", encoding="utf-8") as pf:
                   patches_txt = pf.read()
 
-          # Standardize APK & APKM file naming to Miku-v<version>-<arch>.(apk|apkm)
+          # Standardize APKM file naming to Miku-v<version>-<arch>.apkm (APKM only)
           os.makedirs("release_assets", exist_ok=True)
           asset_files = []
           for root, _, files in os.walk(dist_dir):
               for file in sorted(files):
-                  if (file.endswith(".apk") or file.endswith(".apkm")) and not file.startswith("base"):
+                  if file.endswith(".apkm") and not file.startswith("base"):
                       src = os.path.join(root, file)
                       clean_name = file.replace("MovieBox", "Miku")
                       if not clean_name.startswith("Miku-"):
@@ -160,13 +160,11 @@ jobs:
           checksums_block = "\n".join(checksum_lines) if checksum_lines else "None"
 
           release_body = (
-              f"## 🎬 Miku v{version} (Automated Release)\n\n"
+              f"## 🎬 Miku v{version} (Automated APKM Release)\n\n"
               "Clean, lightweight & ad-free streaming player built with **MikuPatches**.\n\n"
-              "### 📦 Download Assets\n"
-              f"- **ARM64-v8a APKM Bundle** (~62 MB): `Miku-v{version}-arm64-v8a.apkm`\n"
-              f"- **ARMEABI-v7a APKM Bundle** (~62 MB): `Miku-v{version}-armeabi-v7a.apkm`\n"
-              f"- **ARM64-v8a Standalone APK** (~84 MB): `Miku-v{version}-arm64-v8a.apk`\n"
-              f"- **ARMEABI-v7a Standalone APK** (~80 MB): `Miku-v{version}-armeabi-v7a.apk`\n\n"
+              "### 📦 Download Assets (APKMirror Bundles)\n"
+              f"- **ARM64-v8a (64-bit)** (~62 MB): `Miku-v{version}-arm64-v8a.apkm`\n"
+              f"- **ARMEABI-v7a (32-bit)** (~62 MB): `Miku-v{version}-armeabi-v7a.apkm`\n\n"
               f"### 🛡️ Checksums (SHA-256)\n{checksums_block}\n\n"
               "---\n\n"
               f"### 📝 Applied Patches & Features\n```text\n{patches_txt}\n```\n"
@@ -192,7 +190,6 @@ jobs:
           prerelease: false
           files: |
             release_assets/*.apkm
-            release_assets/*.apk
             release_assets/PATCHES.txt
             release_assets/info.json
         env:
