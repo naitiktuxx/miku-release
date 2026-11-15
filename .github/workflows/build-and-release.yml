@@ -17,13 +17,13 @@ jobs:
       - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: "temurin"
+          java-version: "17"
 
       - name: Setup Python 3
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: "3.10"
 
       - name: Install Android Build Tools & Megatools
         run: |
@@ -138,7 +138,6 @@ jobs:
               for file in sorted(files):
                   if (file.endswith(".apk") or file.endswith(".apkm")) and not file.startswith("base"):
                       src = os.path.join(root, file)
-                      # Rename MovieBox -> Miku if needed
                       clean_name = file.replace("MovieBox", "Miku")
                       if not clean_name.startswith("Miku-"):
                           clean_name = f"Miku-{clean_name}"
@@ -146,7 +145,6 @@ jobs:
                       shutil.copy2(src, dst)
                       asset_files.append(dst)
 
-          # Copy PATCHES.txt and info.json to release_assets
           if os.path.exists(patches_file):
               shutil.copy2(patches_file, "release_assets/PATCHES.txt")
           if os.path.exists(info_path):
@@ -161,29 +159,18 @@ jobs:
 
           checksums_block = "\n".join(checksum_lines) if checksum_lines else "None"
 
-          release_body = f"""## 🎬 Miku v{version} (Automated Release)
-
-Clean, lightweight & ad-free streaming player built with **MikuPatches**.
-
-### 📦 Download Assets
-#### ⚡ Compressed APKM Bundles (~62 MB)
-- **ARM64-v8a** (Most modern phones): `Miku-v{version}-arm64-v8a.apkm`
-- **ARMEABI-v7a** (Older 32-bit devices): `Miku-v{version}-armeabi-v7a.apkm`
-
-#### 📲 Direct Standalone APKs
-- **ARM64-v8a** (~84 MB): `Miku-v{version}-arm64-v8a.apk`
-- **ARMEABI-v7a** (~80 MB): `Miku-v{version}-armeabi-v7a.apk`
-
-### 🛡️ Checksums (SHA-256)
-{checksums_block}
-
----
-
-### 📝 Applied Patches & Features
-```text
-{patches_txt}
-```
-"""
+          release_body = (
+              f"## 🎬 Miku v{version} (Automated Release)\n\n"
+              "Clean, lightweight & ad-free streaming player built with **MikuPatches**.\n\n"
+              "### 📦 Download Assets\n"
+              f"- **ARM64-v8a APKM Bundle** (~62 MB): `Miku-v{version}-arm64-v8a.apkm`\n"
+              f"- **ARMEABI-v7a APKM Bundle** (~62 MB): `Miku-v{version}-armeabi-v7a.apkm`\n"
+              f"- **ARM64-v8a Standalone APK** (~84 MB): `Miku-v{version}-arm64-v8a.apk`\n"
+              f"- **ARMEABI-v7a Standalone APK** (~80 MB): `Miku-v{version}-armeabi-v7a.apk`\n\n"
+              f"### 🛡️ Checksums (SHA-256)\n{checksums_block}\n\n"
+              "---\n\n"
+              f"### 📝 Applied Patches & Features\n```text\n{patches_txt}\n```\n"
+          )
 
           with open("RELEASE_BODY.md", "w", encoding="utf-8") as f:
               f.write(release_body)
