@@ -46,6 +46,17 @@ jobs:
         run: |
           git clone --depth 1 https://github.com/naitiktuxx/mikupatches.git .
 
+      - name: Restore Signing Keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > debug.keystore
+            echo "[✓] Consistent debug.keystore restored successfully."
+          else
+            echo "[!] No custom keystore secret provided."
+          fi
+
       - name: Auto-Fetch Base APK from config.json
         run: |
           mkdir -p input
