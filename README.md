@@ -1,2 +1,2 @@
-# moviebox-release
-Automated patched MovieBox builds by MikuPatches
+# Miku Player
+Automated patched Miku builds by MikuPatches
